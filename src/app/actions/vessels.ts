@@ -55,3 +55,34 @@ export async function deleteVessel(id: string) {
     revalidatePath('/production');
     return { success: true };
 }
+export async function updateVessel(id: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { success: false, message: 'Unauthorized' };
+
+    const name = formData.get('name') as string;
+    const type = formData.get('type') as any;
+    const capacity = Number(formData.get('capacity_l'));
+
+    if (!name || !type || !capacity) {
+        return { success: false, message: 'Dados incompletos' };
+    }
+
+    const { error } = await supabase
+        .from('vessels')
+        .update({
+            name,
+            type,
+            capacity_l: capacity
+        })
+        .eq('id', id)
+        .eq('owner_id', user.id);
+
+    if (error) {
+        return { success: false, message: error.message };
+    }
+
+    revalidatePath('/production');
+    return { success: true };
+}

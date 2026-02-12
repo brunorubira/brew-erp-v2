@@ -4,12 +4,13 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, Trash2, Package, Tag, Layers, Beaker, X, Save, Loader2, Search } from 'lucide-react';
-import { createItem, deleteItem } from '@/app/actions/items';
+import { Plus, Edit2, Trash2, Package, Tag, Layers, Beaker, X, Save, Loader2, Search } from 'lucide-react';
+import { createItem, deleteItem, updateItem } from '@/app/actions/items';
 
 export default function ItemCatalogPage() {
     const [items, setItems] = useState<any[]>([]);
     const [isAdding, setIsAdding] = useState(false);
+    const [editingItem, setEditingItem] = useState<any | null>(null);
     const [isPending, setIsPending] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<string>('all');
@@ -38,17 +39,35 @@ export default function ItemCatalogPage() {
         setIsPending(false);
     };
 
-    const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsPending(true);
         const formData = new FormData(e.currentTarget);
-        const res = await createItem(formData);
+
+        let res;
+        if (editingItem) {
+            res = await updateItem(editingItem.id, formData);
+        } else {
+            res = await createItem(formData);
+        }
+
         if (!res.success) alert(res.message);
         else {
             setIsAdding(false);
+            setEditingItem(null);
             fetchItems();
         }
         setIsPending(false);
+    };
+
+    const handleEdit = (item: any) => {
+        setEditingItem(item);
+        setIsAdding(true);
+    };
+
+    const handleCancel = () => {
+        setIsAdding(false);
+        setEditingItem(null);
     };
 
     const filteredItems = items.filter(item => {
@@ -96,22 +115,19 @@ export default function ItemCatalogPage() {
             {isAdding && (
                 <div className="bg-white p-6 rounded-lg border border-amber-200 shadow-md animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-bold text-slate-800">Cadastrar Novo Item</h3>
-                        <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600">
+                        <h3 className="text-lg font-bold text-slate-800">{editingItem ? `Editar Item: ${editingItem.name}` : 'Cadastrar Novo Item'}</h3>
+                        <button onClick={handleCancel} className="text-slate-400 hover:text-slate-600">
                             <X className="h-5 w-5" />
                         </button>
                     </div>
-                    <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Item *</label>
-                            <input name="name" required className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" placeholder="Ex: Malte Pilsen, Lata 473ml, IPA v1" />
+                            <input name="name" required defaultValue={editingItem?.name} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" placeholder="Ex: Malte Pilsen, Lata 473ml, IPA v1" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Tipo *</label>
-                            <select name="type" required className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" onChange={(e) => {
-                                // Trigger re-render to show/hide specific fields if needed
-                                // Using a simple state for the form type would be better for complex logic, but for now we'll keep it simple
-                            }} defaultValue="ingredient">
+                            <select name="type" required defaultValue={editingItem?.type || 'ingredient'} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
                                 <option value="ingredient">Insumo / Ingrediente</option>
                                 <option value="packaging">Embalagem / Material</option>
                                 <option value="product">Produto Final (Lata 473ml)</option>
@@ -119,7 +135,7 @@ export default function ItemCatalogPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Unidade de Medida *</label>
-                            <select name="unit" required className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
+                            <select name="unit" required defaultValue={editingItem?.unit || 'kg'} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
                                 <option value="kg">Quilogramas (kg)</option>
                                 <option value="g">Gramas (g)</option>
                                 <option value="L">Litros (L)</option>
@@ -129,7 +145,7 @@ export default function ItemCatalogPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Categoria Insumo (opcional)</label>
-                            <select name="ingredient_category" className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
+                            <select name="ingredient_category" defaultValue={editingItem?.ingredient_category || ''} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
                                 <option value="">Nenhum</option>
                                 <option value="malt">Malte</option>
                                 <option value="hops">Lúpulo</option>
@@ -141,7 +157,7 @@ export default function ItemCatalogPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Categoria Embalagem (opcional)</label>
-                            <select name="packaging_category" className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
+                            <select name="packaging_category" defaultValue={editingItem?.packaging_category || ''} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
                                 <option value="">Nenhum</option>
                                 <option value="can_body">Corpo de Lata</option>
                                 <option value="can_lid">Tampa</option>
@@ -152,14 +168,14 @@ export default function ItemCatalogPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">SKU / Cód. Interno</label>
-                            <input name="sku" className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" placeholder="Ex: MAT-001" />
+                            <input name="sku" defaultValue={editingItem?.sku || ''} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" placeholder="Ex: MAT-001" />
                         </div>
 
                         <div className="lg:col-span-3 flex justify-end gap-3 mt-2">
-                            <button type="button" onClick={() => setIsAdding(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 border border-slate-300 rounded-md">Cancelar</button>
+                            <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 border border-slate-300 rounded-md">Cancelar</button>
                             <button type="submit" disabled={isPending} className="flex items-center px-6 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors text-sm font-bold disabled:opacity-50">
                                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                Salvar Item
+                                {editingItem ? 'Salvar Alterações' : 'Salvar Item'}
                             </button>
                         </div>
                     </form>
@@ -226,7 +242,14 @@ export default function ItemCatalogPage() {
                                         </td>
                                         <td className="px-6 py-4 text-slate-600">{item.unit}</td>
                                         <td className="px-6 py-4 font-mono text-slate-500">{item.sku || '-'}</td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEdit(item)}
+                                                className="text-slate-300 hover:text-amber-500 transition-colors p-2"
+                                                title="Editar Item"
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(item.id, item.name)}
                                                 className="text-slate-300 hover:text-red-500 transition-colors p-2"

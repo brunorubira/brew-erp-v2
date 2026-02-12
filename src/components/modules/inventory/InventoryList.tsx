@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, AlertCircle, Package } from 'lucide-react';
+import { ChevronDown, ChevronRight, AlertCircle, Package, Edit2, X, Save, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { updateStockLot } from '@/app/actions/inventory';
 
 type StockLot = {
     id: string;
@@ -26,9 +27,21 @@ type InventoryItem = {
 
 export function InventoryList({ items }: { items: InventoryItem[] }) {
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+    const [editingLot, setEditingLot] = useState<string | null>(null);
+    const [isPending, setIsPending] = useState(false);
 
     const toggleExpand = (id: string) => {
         setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const handleUpdateLot = async (e: React.FormEvent<HTMLFormElement>, lotId: string) => {
+        e.preventDefault();
+        setIsPending(true);
+        const formData = new FormData(e.currentTarget);
+        const res = await updateStockLot(lotId, formData);
+        if (!res.success) alert(res.message);
+        else setEditingLot(null);
+        setIsPending(false);
     };
 
     return (
@@ -98,9 +111,67 @@ export function InventoryList({ items }: { items: InventoryItem[] }) {
                                             <tbody>
                                                 {item.lots.map((lot) => {
                                                     const isExpired = lot.expiry_date && new Date(lot.expiry_date) < new Date();
+                                                    const isEditing = editingLot === lot.id;
+
+                                                    if (isEditing) {
+                                                        return (
+                                                            <tr key={lot.id} className="border-b border-amber-100 bg-amber-50">
+                                                                <td colSpan={5} className="py-2 px-1">
+                                                                    <form onSubmit={(e) => handleUpdateLot(e, lot.id)} className="flex items-center gap-2">
+                                                                        <div className="flex-1 flex gap-2">
+                                                                            <input
+                                                                                name="qty_on_hand"
+                                                                                type="number"
+                                                                                step="0.01"
+                                                                                defaultValue={lot.qty_on_hand}
+                                                                                className="w-20 p-1 border rounded text-[10px]"
+                                                                                required
+                                                                            />
+                                                                            <input
+                                                                                name="unit_cost"
+                                                                                type="number"
+                                                                                step="0.01"
+                                                                                defaultValue={lot.unit_cost}
+                                                                                className="w-20 p-1 border rounded text-[10px]"
+                                                                                required
+                                                                            />
+                                                                            <input
+                                                                                name="expiry_date"
+                                                                                type="date"
+                                                                                defaultValue={lot.expiry_date || ''}
+                                                                                className="w-28 p-1 border rounded text-[10px]"
+                                                                            />
+                                                                            <input
+                                                                                name="location_id"
+                                                                                type="hidden"
+                                                                                defaultValue={(lot as any).location_id || ''}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex gap-1">
+                                                                            <button type="submit" disabled={isPending} className="p-1 text-green-600 hover:text-green-800">
+                                                                                {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                                                            </button>
+                                                                            <button type="button" onClick={() => setEditingLot(null)} className="p-1 text-slate-400 hover:text-slate-600">
+                                                                                <X className="h-3 w-3" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    }
+
                                                     return (
-                                                        <tr key={lot.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-100">
-                                                            <td className="py-2 font-mono">{lot.supplier_lot_code || '-'}</td>
+                                                        <tr key={lot.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-100 group">
+                                                            <td className="py-2 font-mono flex items-center gap-2">
+                                                                {lot.supplier_lot_code || '-'}
+                                                                <button
+                                                                    onClick={() => setEditingLot(lot.id)}
+                                                                    className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-amber-500 transition-all"
+                                                                >
+                                                                    <Edit2 className="h-3 w-3" />
+                                                                </button>
+                                                            </td>
                                                             <td className="py-2">{lot.location?.name || '-'}</td>
                                                             <td className={`py-2 ${isExpired ? 'text-red-600 font-bold' : ''}`}>
                                                                 {lot.expiry_date ? format(new Date(lot.expiry_date), 'dd/MM/yyyy') : '-'}

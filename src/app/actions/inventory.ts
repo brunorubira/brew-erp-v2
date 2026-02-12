@@ -125,3 +125,36 @@ export async function createPurchaseReceipt(
         return { success: false, error: e.message };
     }
 }
+export async function updateStockLot(id: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { success: false, message: 'Unauthorized' };
+
+    const qty = Number(formData.get('qty_on_hand'));
+    const unit_cost = Number(formData.get('unit_cost'));
+    const expiry_date = formData.get('expiry_date') as string || null;
+    const location_id = formData.get('location_id') as string;
+
+    if (isNaN(qty) || isNaN(unit_cost) || !location_id) {
+        return { success: false, message: 'Dados inválidos' };
+    }
+
+    const { error } = await supabase
+        .from('stock_lots')
+        .update({
+            qty_on_hand: qty,
+            unit_cost,
+            expiry_date,
+            location_id
+        })
+        .eq('id', id)
+        .eq('owner_id', user.id);
+
+    if (error) {
+        return { success: false, message: error.message };
+    }
+
+    revalidatePath('/inventory');
+    return { success: true };
+}
