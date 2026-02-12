@@ -41,46 +41,55 @@ BEGIN
   WHERE bc.batch_id = p_batch_id;
 
   -- 3. Auto-Consume Packaging Materials & Calc Cost
-  FOR v_packaging_category IN SELECT unnest(ARRAY['can_body', 'can_lid', 'label'])
-  LOOP
-     SELECT id INTO v_item_id FROM items WHERE owner_id = p_owner_id AND packaging_category = v_packaging_category AND is_active = true LIMIT 1;
-     
-     IF v_item_id IS NOT NULL THEN
-       v_qty_needed := p_qty_produced;
-       
-       FOR v_rec_items IN 
-          SELECT id, qty_on_hand, unit_cost FROM stock_lots 
-          WHERE item_id = v_item_id AND qty_on_hand > 0 AND status = 'active'
-          ORDER BY expiry_date ASC, received_at ASC
-       LOOP
-          IF v_qty_needed <= 0 THEN EXIT; END IF;
-
-          DECLARE
-            v_consume NUMERIC;
-            v_cost NUMERIC;
-          BEGIN
-            IF v_rec_items.qty_on_hand >= v_qty_needed THEN
-               v_consume := v_qty_needed;
-            ELSE
-               v_consume := v_rec_items.qty_on_hand;
-            END IF;
-            
-            -- Track Cost
-            v_cost := v_consume * v_rec_items.unit_cost;
-            v_total_packaging_cost := v_total_packaging_cost + v_cost;
-
-            -- Update Lot
-            UPDATE stock_lots SET qty_on_hand = qty_on_hand - v_consume WHERE id = v_rec_items.id;
-            
-            -- Log Movement
-            INSERT INTO inventory_movements (owner_id, item_id, stock_lot_id, type, qty_change, reference_id, notes)
-            VALUES (p_owner_id, v_item_id, v_rec_items.id, 'consumption', -v_consume, v_run_id, 'Consumo Envase Auto');
-            
-            v_qty_needed := v_qty_needed - v_consume;
-          END;
-       END LOOP;
-     END IF;
-  END LOOP;
+  -- Only for Cans (identified by volume_ml = 473)
+  DECLARE
+    v_prod_vol INTEGER;
+  BEGIN
+    SELECT volume_ml INTO v_prod_vol FROM items WHERE id = p_product_id;
+    
+    IF v_prod_vol = 473 THEN
+      FOR v_packaging_category IN SELECT unnest(ARRAY['can_body', 'can_lid', 'label'])
+      LOOP
+         SELECT id INTO v_item_id FROM items WHERE owner_id = p_owner_id AND packaging_category = v_packaging_category AND is_active = true LIMIT 1;
+         
+         IF v_item_id IS NOT NULL THEN
+           v_qty_needed := p_qty_produced;
+           
+           FOR v_rec_items IN 
+              SELECT id, qty_on_hand, unit_cost FROM stock_lots 
+              WHERE item_id = v_item_id AND qty_on_hand > 0 AND status = 'active'
+              ORDER BY expiry_date ASC, received_at ASC
+           LOOP
+              IF v_qty_needed <= 0 THEN EXIT; END IF;
+    
+              DECLARE
+                v_consume NUMERIC;
+                v_cost NUMERIC;
+              BEGIN
+                IF v_rec_items.qty_on_hand >= v_qty_needed THEN
+                   v_consume := v_qty_needed;
+                ELSE
+                   v_consume := v_rec_items.qty_on_hand;
+                END IF;
+                
+                -- Track Cost
+                v_cost := v_consume * v_rec_items.unit_cost;
+                v_total_packaging_cost := v_total_packaging_cost + v_cost;
+    
+                -- Update Lot
+                UPDATE stock_lots SET qty_on_hand = qty_on_hand - v_consume WHERE id = v_rec_items.id;
+                
+                -- Log Movement
+                INSERT INTO inventory_movements (owner_id, item_id, stock_lot_id, type, qty_change, reference_id, notes)
+                VALUES (p_owner_id, v_item_id, v_rec_items.id, 'consumption', -v_consume, v_run_id, 'Consumo Envase Auto');
+                
+                v_qty_needed := v_qty_needed - v_consume;
+              END;
+           END LOOP;
+         END IF;
+      END LOOP;
+    END IF;
+  END;
 
   -- 4. Calculate Final Unit Cost
   v_total_cost := v_total_ingredients_cost + v_total_packaging_cost;

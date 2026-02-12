@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { consumeIngredient } from '@/app/actions/production-details';
-import { Loader2, Plus } from 'lucide-react';
+import { deleteConsumption } from '@/app/actions/production';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 type Lot = {
     id: string;
@@ -14,8 +15,30 @@ type Lot = {
         name: string;
         unit: string;
         type: string;
-    } | null; // Allow nulls for safe access, though query includes it
+    } | null;
 };
+
+export function DeleteConsumptionButton({ id }: { id: string }) {
+    const [isPending, setIsPending] = useState(false);
+
+    const handleDelete = async () => {
+        if (!confirm('Deseja realmente excluir este consumo? O estoque será devolvido ao lote original.')) return;
+        setIsPending(true);
+        await deleteConsumption(id);
+        setIsPending(false);
+    };
+
+    return (
+        <button
+            onClick={handleDelete}
+            disabled={isPending}
+            className="text-slate-300 hover:text-red-600 transition-colors p-1"
+            title="Excluir Consumo"
+        >
+            {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+        </button>
+    );
+}
 
 export function ConsumptionForm({ batchId, lots }: { batchId: string, lots: Lot[] }) {
     const [selectedItemId, setSelectedItemId] = useState('');

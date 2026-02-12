@@ -38,73 +38,101 @@ export default async function ProductionPage() {
         return <div>Erro ao carregar lotes.</div>;
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'planned': return 'bg-blue-100 text-blue-700';
-            case 'in_progress': return 'bg-amber-100 text-amber-700';
-            case 'completed': return 'bg-green-100 text-green-700';
-            case 'cancelled': return 'bg-red-100 text-red-700';
-            default: return 'bg-slate-100 text-slate-700';
-        }
+    const getStatusStyles = (status: string) => {
+        const styles: any = {
+            planned: 'bg-slate-100 text-slate-700 border-slate-200',
+            in_progress: 'bg-blue-100 text-blue-700 border-blue-200',
+            completed: 'bg-green-100 text-green-700 border-green-200',
+            cancelled: 'bg-red-100 text-red-700 border-red-200'
+        };
+        return styles[status] || styles.planned;
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 pb-10">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">Lotes de Produção</h2>
-                    <p className="text-slate-500">Gestão de brassagens, fermentação e envase.</p>
+                    <h2 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Produção</h2>
+                    <p className="text-slate-500 text-sm font-medium">Controle total de brassagens, fermentação e envase.</p>
                 </div>
                 <Link
                     href="/production/new"
-                    className="flex items-center px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors text-sm font-medium"
+                    className="flex items-center px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all text-sm font-black uppercase tracking-widest shadow-lg shadow-amber-200 active:scale-95"
                 >
-                    <Plus className="mr-2 h-4 w-4" /> Novo Lote
+                    <Plus className="mr-2 h-5 w-5 stroke-[3px]" /> Novo Lote
                 </Link>
             </div>
 
-            <div className="mb-8">
-                <h3 className="text-lg font-semibold text-slate-700 mb-3">Tanques & Fermentadores</h3>
+            <section className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm transition-all hover:border-amber-100">
+                <div className="flex items-center gap-2 mb-6">
+                    <Beaker className="h-5 w-5 text-amber-500" />
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Tanques & Fermentadores</h3>
+                </div>
                 <TankList tanks={tanks} />
-            </div>
+            </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {batches?.length === 0 ? (
-                    <div className="col-span-full text-center py-10 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                        Nenhum lote encontrado. Inicie uma nova produção!
-                    </div>
-                ) : (
-                    batches?.map((batch) => (
-                        <Link key={batch.id} href={`/production/${batch.id}`} className="block group">
-                            <div className="bg-white p-5 rounded-lg shadow-sm border border-slate-200 hover:border-amber-400 hover:shadow-md transition-all">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">{batch.batch_number}</span>
-                                        <h3 className="text-lg font-bold text-slate-800 mt-2 group-hover:text-amber-600 transition-colors">{batch.name}</h3>
-                                    </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(batch.status)}`}>
-                                        {batch.status.replace('_', ' ')}
-                                    </span>
-                                </div>
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-1 bg-amber-500 rounded-full"></div>
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Lotes em Andamento</h3>
+                </div>
 
-                                <div className="space-y-2 text-sm text-slate-600">
-                                    <div className="flex items-center">
-                                        <Beaker className="mr-2 h-4 w-4 text-slate-400" />
-                                        <span>{batch.planned_volume_l} Litros (Planejado)</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {batches?.length === 0 ? (
+                        <div className="col-span-full text-center py-16 text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                            <Plus className="mx-auto h-8 w-8 mb-4 opacity-20" />
+                            <p className="font-bold">Nenhum lote encontrado.</p>
+                            <p className="text-xs">Inicie uma nova produção para começar o rastreamento.</p>
+                        </div>
+                    ) : (
+                        batches?.map((batch) => (
+                            <Link key={batch.id} href={`/production/${batch.id}`} className="group h-full">
+                                <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm group-hover:border-amber-400 group-hover:shadow-xl group-hover:-translate-y-1 transition-all flex flex-col h-full relative overflow-hidden">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span className="text-[10px] font-black text-white bg-slate-800 px-2 py-0.5 rounded tracking-tighter uppercase">{batch.batch_number}</span>
+                                            <h3 className="text-xl font-black text-slate-900 mt-2 tracking-tight group-hover:text-amber-600 transition-colors line-clamp-1">{batch.name}</h3>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center">
-                                        <Calendar className="mr-2 h-4 w-4 text-slate-400" />
-                                        <span>Início: {batch.start_date ? format(new Date(batch.start_date), 'dd/MM/yyyy') : '-'}</span>
+
+                                    <div className="mt-auto space-y-4">
+                                        <div className="flex items-center justify-between text-[11px] font-black text-slate-500 uppercase tracking-tighter">
+                                            <div className="flex items-center">
+                                                <Calendar className="mr-1.5 h-3.5 w-3.5" />
+                                                <span>{batch.start_date ? format(new Date(batch.start_date), 'dd/MM/yy') : '-'}</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <Beaker className="mr-1.5 h-3.5 w-3.5" />
+                                                <span>{batch.planned_volume_l}L</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-slate-50 flex items-center justify-between gap-3">
+                                            <div className="flex-1">
+                                                <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                    <span>{batch.stage}</span>
+                                                </div>
+                                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full transition-all duration-700 ${batch.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}
+                                                        style={{ width: batch.status === 'completed' ? '100%' : '65%' }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-2 whitespace-nowrap shadow-sm ${getStatusStyles(batch.status)}`}>
+                                                {batch.status.replace('_', ' ')}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center">
-                                        <CheckCircle2 className="mr-2 h-4 w-4 text-slate-400" />
-                                        <span className="capitalize">Etapa: {batch.stage}</span>
-                                    </div>
+
+                                    {batch.status === 'in_progress' && (
+                                        <div className="absolute top-0 right-0 w-8 h-8 bg-amber-500 rotate-45 translate-x-4 -translate-y-4"></div>
+                                    )}
                                 </div>
-                            </div>
-                        </Link>
-                    ))
-                )}
+                            </Link>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );
