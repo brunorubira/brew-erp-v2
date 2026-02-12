@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { updateBatch } from '@/app/actions/production';
-import { Save, X, Loader2, Edit2 } from 'lucide-react';
+import { updateBatch, deleteBatch } from '@/app/actions/production';
+import { Save, X, Loader2, Edit2, Trash2 } from 'lucide-react';
 
 export function BatchEditForm({ batch }: { batch: any }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -118,6 +118,25 @@ export function BatchEditForm({ batch }: { batch: any }) {
                         >
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             Salvar Alterações
+                        </button>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (confirm('Tem certeza que deseja excluir permanentemente este lote? Esta ação não pode ser desfeita.')) {
+                                    setIsPending(true);
+                                    const res = await deleteBatch(batch.id);
+                                    if (res && !res.success) {
+                                        alert(res.error);
+                                        setIsPending(false);
+                                    }
+                                }
+                            }}
+                            className="flex items-center gap-2 text-red-500 hover:text-red-700 text-xs font-black uppercase tracking-widest transition-colors p-2"
+                        >
+                            <Trash2 className="h-4 w-4" /> Excluir Lote
                         </button>
                     </div>
                 </form>

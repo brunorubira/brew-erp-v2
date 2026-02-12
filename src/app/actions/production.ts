@@ -139,3 +139,40 @@ export async function deleteConsumption(consumptionId: string) {
 
     return { success: true };
 }
+export async function deleteBatch(id: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error('Unauthorized');
+
+    // 1. Get active assignments to release vessels
+    const { data: assignments } = await supabase
+        .from('batch_vessel_assignments')
+        .select('vessel_id')
+        .eq('batch_id', id)
+        .is('released_at', null);
+
+    if (assignments && assignments.length > 0) {
+        const vesselIds = assignments.map(a => a.vessel_id);
+        await supabase
+            .from('vessels')
+            .update({ status: 'available' })
+            .in('id', vesselIds);
+    }
+
+    // 2. Delete the batch (assuming no production data like packaging runs exist yet, or let DB error handle it)
+    // If there are packaging runs, deletion might fail due to FK constraints.
+    // For now, we'll try to delete.
+    const { error } = await supabase
+        .from('batches')
+        .delete()
+        .eq('id', id)
+        .eq('owner_id', user.id);
+
+    if (error) {
+        return { success: false, error: 'Não é possível excluir um lote que já possui registros de envase ou consumos. ' + error.message };
+    }
+
+    revalidatePath('/production');
+    redirect('/production');
+}
