@@ -26,6 +26,7 @@ export default async function InventoryPage() {
         .select(`
       id,
       item_id,
+      location_id,
       supplier_lot_code,
       qty_on_hand,
       unit_cost,

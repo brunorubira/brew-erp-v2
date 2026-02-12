@@ -12,6 +12,7 @@ type StockLot = {
     unit_cost: number;
     expiry_date: string | null;
     received_at: string;
+    location_id: string;
     location: { name: string } | null;
 };
 
@@ -144,7 +145,7 @@ export function InventoryList({ items }: { items: InventoryItem[] }) {
                                                                             <input
                                                                                 name="location_id"
                                                                                 type="hidden"
-                                                                                defaultValue={(lot as any).location_id || ''}
+                                                                                defaultValue={lot.location_id || ''}
                                                                             />
                                                                         </div>
                                                                         <div className="flex gap-1">
