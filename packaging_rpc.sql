@@ -115,8 +115,22 @@ BEGIN
     p_owner_id, p_product_id, v_finished_lot_id, 'production_yield', p_qty_produced, v_run_id, 'Envase Lote'
   );
 
-  -- 7. Update Batch Status
-  UPDATE batches SET status = 'completed', stage = 'finished', end_date = CURRENT_DATE WHERE id = p_batch_id;
+  -- 7. Update Batch Volume and Status
+  -- Calculate volume removed in liters
+  DECLARE
+    v_prod_vol INTEGER;
+    v_vol_removed_l NUMERIC;
+  BEGIN
+    SELECT volume_ml INTO v_prod_vol FROM items WHERE id = p_product_id;
+    v_vol_removed_l := (p_qty_produced * COALESCE(v_prod_vol, 0)) / 1000.0;
+    
+    UPDATE batches 
+    SET actual_volume_l = COALESCE(actual_volume_l, 0) - v_vol_removed_l,
+        status = CASE WHEN (COALESCE(actual_volume_l, 0) - v_vol_removed_l) <= 0 THEN 'completed' ELSE status END,
+        stage = CASE WHEN (COALESCE(actual_volume_l, 0) - v_vol_removed_l) <= 0 THEN 'finished' ELSE stage END,
+        end_date = CASE WHEN (COALESCE(actual_volume_l, 0) - v_vol_removed_l) <= 0 THEN CURRENT_DATE ELSE end_date END
+    WHERE id = p_batch_id;
+  END;
 
   RETURN v_run_id;
 END;
