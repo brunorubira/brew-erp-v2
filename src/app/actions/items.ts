@@ -15,6 +15,7 @@ export async function createItem(formData: FormData) {
     const ingredient_category = formData.get('ingredient_category') as string || null;
     const packaging_category = formData.get('packaging_category') as string || null;
     const sku = formData.get('sku') as string || null;
+    const volume_ml = formData.get('volume_ml') ? Number(formData.get('volume_ml')) : null;
 
     if (!name || !type || !unit) {
         return { success: false, message: 'Nome, tipo e unidade são obrigatórios.' };
@@ -34,7 +35,7 @@ export async function createItem(formData: FormData) {
     } else if (type === 'packaging') {
         itemData.packaging_category = packaging_category;
     } else if (type === 'product') {
-        itemData.volume_ml = 473; // Strict requirement from schema
+        itemData.volume_ml = volume_ml || 473;
     }
 
     const { error } = await supabase.from('items').insert(itemData);
@@ -80,6 +81,7 @@ export async function updateItem(id: string, formData: FormData) {
     const ingredient_category = formData.get('ingredient_category') as string || null;
     const packaging_category = formData.get('packaging_category') as string || null;
     const sku = formData.get('sku') as string || null;
+    const volume_ml = formData.get('volume_ml') ? Number(formData.get('volume_ml')) : null;
 
     if (!name || !type || !unit) {
         return { success: false, message: 'Nome, tipo e unidade são obrigatórios.' };
@@ -95,11 +97,15 @@ export async function updateItem(id: string, formData: FormData) {
     if (type === 'ingredient') {
         itemData.ingredient_category = ingredient_category;
         itemData.packaging_category = null;
+        itemData.volume_ml = null;
     } else if (type === 'packaging') {
         itemData.packaging_category = packaging_category;
         itemData.ingredient_category = null;
+        itemData.volume_ml = null;
     } else if (type === 'product') {
-        itemData.volume_ml = 473;
+        itemData.volume_ml = volume_ml || 473;
+        itemData.ingredient_category = null;
+        itemData.packaging_category = null;
     }
 
     const { error } = await supabase

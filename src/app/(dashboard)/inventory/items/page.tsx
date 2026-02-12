@@ -130,7 +130,7 @@ export default function ItemCatalogPage() {
                             <select name="type" required defaultValue={editingItem?.type || 'ingredient'} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500">
                                 <option value="ingredient">Insumo / Ingrediente</option>
                                 <option value="packaging">Embalagem / Material</option>
-                                <option value="product">Produto Final (Lata 473ml)</option>
+                                <option value="product">Produto Final (Lata/Barril/etc)</option>
                             </select>
                         </div>
                         <div>
@@ -169,6 +169,16 @@ export default function ItemCatalogPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">SKU / Cód. Interno</label>
                             <input name="sku" defaultValue={editingItem?.sku || ''} className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500" placeholder="Ex: MAT-001" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Volume (ml) - Apenas Produtos</label>
+                            <input
+                                name="volume_ml"
+                                type="number"
+                                defaultValue={editingItem?.volume_ml || 473}
+                                className="w-full border p-2 rounded-md border-slate-300 focus:outline-amber-500 disabled:bg-slate-50 disabled:text-slate-400"
+                                placeholder="Ex: 473, 1000, 30000"
+                            />
                         </div>
 
                         <div className="lg:col-span-3 flex justify-end gap-3 mt-2">
@@ -238,7 +248,7 @@ export default function ItemCatalogPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-slate-600 uppercase text-[10px] font-mono">
-                                            {item.type === 'product' ? 'Cerveja (473ml)' : (item.ingredient_category || item.packaging_category || '-')}
+                                            {item.type === 'product' ? `${item.volume_ml >= 1000 ? `${item.volume_ml / 1000}L` : `${item.volume_ml}ml`}` : (item.ingredient_category || item.packaging_category || '-')}
                                         </td>
                                         <td className="px-6 py-4 text-slate-600">{item.unit}</td>
                                         <td className="px-6 py-4 font-mono text-slate-500">{item.sku || '-'}</td>
