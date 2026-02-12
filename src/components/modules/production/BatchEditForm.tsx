@@ -21,7 +21,7 @@ export function BatchEditForm({ batch }: { batch: any }) {
         return (
             <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-3 py-1.5 border border-slate-300 rounded text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 border-2 border-amber-500 rounded text-sm font-black text-amber-600 hover:bg-amber-50 transition-all active:scale-95 shadow-sm"
             >
                 <Edit2 className="h-4 w-4" /> Editar Lote
             </button>

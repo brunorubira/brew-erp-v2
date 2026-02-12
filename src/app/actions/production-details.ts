@@ -107,9 +107,9 @@ export async function assignVessel(formData: FormData) {
 
     const batchId = formData.get('batch_id') as string;
     const vesselId = formData.get('vessel_id') as string;
+    const actualVolume = formData.get('actual_volume_l') ? Number(formData.get('actual_volume_l')) : null;
 
     // 1. Check if vessel is available
-    // We can trust the unique constraint or check manually for UX message
     const { data: existing } = await supabase
         .from('batch_vessel_assignments')
         .select('id')
@@ -132,7 +132,13 @@ export async function assignVessel(formData: FormData) {
     // 3. Update Vessel Status
     await supabase.from('vessels').update({ status: 'occupied' }).eq('id', vesselId);
 
+    // 4. Update Batch Volume and Stage (The "Transfer" part)
+    const updates: any = { stage: 'fermenting', status: 'in_progress' };
+    if (actualVolume !== null) updates.actual_volume_l = actualVolume;
+
+    await supabase.from('batches').update(updates).eq('id', batchId);
+
     revalidatePath(`/production/${batchId}`);
-    return { success: true, message: 'Tanque atribuído' };
+    return { success: true, message: 'Transferência concluída para o tanque' };
 }
 

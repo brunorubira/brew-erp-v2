@@ -5,7 +5,7 @@ import { ArrowLeft, Beaker, Thermometer, Activity, Package } from 'lucide-react'
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { ConsumptionForm, DeleteConsumptionButton } from '@/components/modules/production/ConsumptionForm';
-import { MeasurementsForm, VesselAssignmentForm } from '@/components/modules/production/BatchOperations';
+import { MeasurementsForm, TransferToTankForm } from '@/components/modules/production/BatchOperations';
 import { BatchEditForm } from '@/components/modules/production/BatchEditForm';
 
 export default async function BatchDetailPage({ params }: { params: { id: string } }) {
@@ -177,7 +177,11 @@ export default async function BatchDetailPage({ params }: { params: { id: string
                         <MeasurementsForm batchId={batch.id} initialData={batch} />
 
                         {!batch.assignments?.[0] && (
-                            <VesselAssignmentForm batchId={batch.id} vessels={vessels || []} />
+                            <TransferToTankForm
+                                batchId={batch.id}
+                                vessels={vessels || []}
+                                targetVolume={batch.recipe_version?.target_volume_l}
+                            />
                         )}
                     </div>
 
