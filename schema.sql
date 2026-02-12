@@ -79,7 +79,7 @@ CREATE TABLE items (
   packaging_category TEXT CHECK (packaging_category IN ('can_body', 'can_lid', 'label', 'box', 'other')),
   
   -- Product Specifics
-  volume_ml INTEGER CHECK (type != 'product' OR volume_ml = 473), -- STRICT 473ml for products
+  volume_ml INTEGER CHECK (type != 'product' OR volume_ml > 0), -- Flexible volume for products (Lata, Keg, etc)
   
   sku TEXT,
   barcode TEXT,
