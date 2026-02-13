@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { FinishedProductsList } from '@/components/modules/inventory/FinishedProductsList';
 import Link from 'next/link';
-import { Package, LineChart, Beer } from 'lucide-react';
+import { Package, LineChart, Beer, Tag } from 'lucide-react';
 
 export default async function FinishedProductsPage() {
     const supabase = await createClient();
