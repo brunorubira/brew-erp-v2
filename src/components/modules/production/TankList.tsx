@@ -143,21 +143,31 @@ export function TankList({ tanks }: { tanks: Vessel[] }) {
                                                 </span>
                                                 <span className="text-[10px] font-bold text-slate-600 uppercase">Cap: {tank.capacity_l}L</span>
                                             </div>
-                                            {/* Utilization Progress Bar */}
-                                            {/* Note: In a real scenario we'd get the current batch volume. 
-                                                For now we use a semi-random or fixed small value to show UI, 
-                                                but I should ideally pass the batch volume. 
-                                                I'll add a 'current_volume' placeholder or logic if I can find it. */}
-                                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                                                <div
-                                                    className="h-full bg-blue-500 transition-all duration-500"
-                                                    style={{ width: '75%' }} // Placeholder utilization
-                                                ></div>
-                                            </div>
-                                            <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase">
-                                                <span>Utilização</span>
-                                                <span>75%</span>
-                                            </div>
+
+                                            {(() => {
+                                                const activeAssignment = (tank as any).assignments?.find((a: any) => !a.released_at);
+                                                if (activeAssignment) {
+                                                    return (
+                                                        <div className="bg-blue-50 p-2 rounded border border-blue-100 mt-2">
+                                                            <div className="text-[9px] font-black text-blue-400 tracking-widest uppercase mb-1">PRODUÇÃO ATIVA</div>
+                                                            <div className="text-xs font-black text-blue-900 truncate">
+                                                                {activeAssignment.batch.name}
+                                                            </div>
+                                                            <div className="text-[10px] font-bold text-blue-700 mt-0.5">
+                                                                #{activeAssignment.batch.batch_number}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200 mt-2">
+                                                        <div
+                                                            className="h-full bg-blue-500 transition-all duration-500"
+                                                            style={{ width: '0%' }}
+                                                        ></div>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     ) : (
                                         <div className="flex items-center justify-between">

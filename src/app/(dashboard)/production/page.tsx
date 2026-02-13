@@ -1,7 +1,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { Plus, Beaker, Calendar, CheckCircle2 } from 'lucide-react';
+import { Plus, Beaker, Calendar, CheckCircle2, Droplet } from 'lucide-react';
 import { format } from 'date-fns';
 import { TankList } from '@/components/modules/production/TankList';
 
@@ -13,20 +13,31 @@ export default async function ProductionPage() {
         supabase
             .from('batches')
             .select(`
-      id,
-      batch_number,
-      name,
-      status,
-      stage,
-      planned_volume_l,
-      actual_volume_l,
-      start_date
-    `)
-            .order('created_at', { ascending: false }),
+                id,
+                batch_number,
+                name,
+                status,
+                stage,
+                planned_volume_l,
+                actual_volume_l,
+                start_date,
+                assignments:batch_vessel_assignments(
+                    assigned_at,
+                    vessel:vessels(name)
+                )
+            `)
+            .order('created_at', { ascending: false })
+            .order('assigned_at', { foreignTable: 'batch_vessel_assignments', ascending: false }),
 
         supabase
             .from('vessels')
-            .select('*')
+            .select(`
+                *,
+                assignments:batch_vessel_assignments(
+                    released_at,
+                    batch:batches(name, batch_number)
+                )
+            `)
             .eq('is_active', true)
             .order('name')
     ]);
@@ -92,6 +103,15 @@ export default async function ProductionPage() {
                                         <div>
                                             <span className="text-[10px] font-black text-white bg-slate-800 px-2 py-0.5 rounded tracking-tighter uppercase">{batch.batch_number}</span>
                                             <h3 className="text-xl font-black text-slate-900 mt-2 tracking-tight group-hover:text-amber-600 transition-colors line-clamp-1">{batch.name}</h3>
+                                            {(batch.assignments as any[])?.length > 0 && (
+                                                <div className={`flex items-center mt-1 text-[10px] font-bold uppercase tracking-tight ${batch.status === 'completed' ? 'text-slate-500' : 'text-blue-600'}`}>
+                                                    <span className={`${batch.status === 'completed' ? 'bg-slate-50 border-slate-100' : 'bg-blue-50 border-blue-100'} px-1.5 py-0.5 rounded border flex items-center`}>
+                                                        <Droplet className="h-3 w-3 mr-1" />
+                                                        {batch.status === 'completed' ? 'Produzido em: ' : ''}
+                                                        {(batch.assignments as any[])[0].vessel.name}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
