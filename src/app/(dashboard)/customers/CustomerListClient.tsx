@@ -74,67 +74,127 @@ export function CustomerListClient({ initialCustomers }: { initialCustomers: any
             )}
 
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden text-slate-800">
-                <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Documento</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                        {filteredCustomers.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden text-slate-800">
+                    {/* Desktop Table */}
+                    <table className="hidden sm:table min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
                             <tr>
-                                <td colSpan={4} className="px-6 py-10 text-center text-slate-500 italic">
-                                    Nenhum cliente encontrado.
-                                </td>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Documento</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Ações</th>
                             </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-slate-200">
+                            {filteredCustomers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-slate-500 italic">
+                                        Nenhum cliente encontrado.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredCustomers.map((customer) => (
+                                    <tr key={customer.id} className="hover:bg-slate-50">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-slate-900">{customer.name}</div>
+                                            {customer.notes && <div className="text-xs text-slate-500 truncate max-w-xs">{customer.notes}</div>}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col space-y-1">
+                                                {customer.email && (
+                                                    <div className="flex items-center text-sm text-slate-600">
+                                                        <Mail className="h-3 w-3 mr-1" /> {customer.email}
+                                                    </div>
+                                                )}
+                                                {customer.phone && (
+                                                    <div className="flex items-center text-sm text-slate-600">
+                                                        <Phone className="h-3 w-3 mr-1" /> {customer.phone}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                            {customer.tax_id || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end space-x-2">
+                                                <button
+                                                    onClick={() => setEditingCustomer(customer)}
+                                                    className="text-amber-600 hover:text-amber-900 p-2"
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(customer.id)}
+                                                    className="text-red-600 hover:text-red-900 p-2"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+
+                    {/* Mobile Card List */}
+                    <div className="sm:hidden divide-y divide-slate-100">
+                        {filteredCustomers.length === 0 ? (
+                            <div className="p-8 text-center text-slate-500 italic text-sm">
+                                Nenhum cliente encontrado.
+                            </div>
                         ) : (
                             filteredCustomers.map((customer) => (
-                                <tr key={customer.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-slate-900">{customer.name}</div>
-                                        {customer.notes && <div className="text-xs text-slate-500 truncate max-w-xs">{customer.notes}</div>}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col space-y-1">
-                                            {customer.email && (
-                                                <div className="flex items-center text-sm text-slate-600">
-                                                    <Mail className="h-3 w-3 mr-1" /> {customer.email}
-                                                </div>
-                                            )}
-                                            {customer.phone && (
-                                                <div className="flex items-center text-sm text-slate-600">
-                                                    <Phone className="h-3 w-3 mr-1" /> {customer.phone}
+                                <div key={customer.id} className="p-4 flex flex-col gap-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="text-base font-bold text-slate-900">{customer.name}</div>
+                                            {customer.tax_id && (
+                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                                    DOC: {customer.tax_id}
                                                 </div>
                                             )}
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                        {customer.tax_id || '-'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex justify-end space-x-2">
+                                        <div className="flex gap-2">
                                             <button
                                                 onClick={() => setEditingCustomer(customer)}
-                                                className="text-amber-600 hover:text-amber-900"
+                                                className="p-2 text-amber-600 hover:bg-amber-50 rounded"
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(customer.id)}
-                                                className="text-red-600 hover:text-red-900"
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        {customer.email && (
+                                            <div className="flex items-center text-sm text-slate-600">
+                                                <Mail className="h-3.5 w-3.5 mr-2 text-slate-400" /> {customer.email}
+                                            </div>
+                                        )}
+                                        {customer.phone && (
+                                            <div className="flex items-center text-sm text-slate-600">
+                                                <Phone className="h-3.5 w-3.5 mr-2 text-slate-400" /> {customer.phone}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {customer.notes && (
+                                        <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
+                                            {customer.notes}
+                                        </div>
+                                    )}
+                                </div>
                             ))
                         )}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
         </div>
     );

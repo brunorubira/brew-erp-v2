@@ -13,12 +13,13 @@ export function SalesListClient({ initialSales }: { initialSales: any[] }) {
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden text-slate-800">
-            <div className="grid grid-cols-12 gap-4 p-4 bg-slate-50 border-b border-slate-200 font-medium text-slate-600 text-sm">
+            {/* Header - Hidden on small mobile */}
+            <div className="hidden sm:grid grid-cols-12 gap-4 p-4 bg-slate-50 border-b border-slate-200 font-medium text-slate-600 text-sm">
                 <div className="col-span-1"></div>
                 <div className="col-span-2">Data</div>
                 <div className="col-span-4">Cliente</div>
                 <div className="col-span-2 text-right">Total</div>
-                <div className="col-span-3">Status</div>
+                <div className="col-span-3 text-right">Status</div>
             </div>
 
             <div className="divide-y divide-slate-100">
@@ -32,25 +33,46 @@ export function SalesListClient({ initialSales }: { initialSales: any[] }) {
                         return (
                             <div key={sale.id} className="text-sm">
                                 <div
-                                    className={`grid grid-cols-12 gap-4 p-4 hover:bg-slate-50 cursor-pointer transition-colors items-center ${isExpanded ? 'bg-slate-50' : ''}`}
+                                    className={`flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:gap-4 p-4 hover:bg-slate-50 cursor-pointer transition-colors items-start sm:items-center ${isExpanded ? 'bg-slate-50' : ''}`}
                                     onClick={() => toggleExpand(sale.id)}
                                 >
-                                    <div className="col-span-1 flex justify-center">
+                                    {/* Desktop Chevron */}
+                                    <div className="hidden sm:flex col-span-1 justify-center">
                                         {isExpanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
                                     </div>
-                                    <div className="col-span-2 text-slate-600">
+
+                                    {/* Mobile Header Row */}
+                                    <div className="flex sm:hidden w-full justify-between items-center mb-1">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            {sale.date ? format(new Date(sale.date), 'dd/MM/yyyy') : '-'}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${sale.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                                    sale.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                        'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {sale.status}
+                                            </span>
+                                            {isExpanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                                        </div>
+                                    </div>
+
+                                    <div className="hidden sm:block col-span-2 text-slate-600">
                                         {sale.date ? format(new Date(sale.date), 'dd/MM/yyyy') : '-'}
                                     </div>
-                                    <div className="col-span-4 font-medium text-slate-900">
+
+                                    <div className="sm:col-span-4 font-bold text-slate-900 text-base sm:text-sm">
                                         {sale.customer?.name || 'Venda Balcão'}
                                     </div>
-                                    <div className="col-span-2 text-right font-bold text-slate-900">
+
+                                    <div className="sm:col-span-2 sm:text-right font-black text-amber-600 sm:text-slate-900 text-lg sm:text-sm">
                                         R$ {sale.total_amount?.toFixed(2)}
                                     </div>
-                                    <div className="col-span-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${sale.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                                                sale.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                    'bg-amber-100 text-amber-700'
+
+                                    <div className="hidden sm:block col-span-3 text-right">
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${sale.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                            sale.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                'bg-amber-100 text-amber-700'
                                             }`}>
                                             {sale.status}
                                         </span>

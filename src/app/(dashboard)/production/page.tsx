@@ -35,7 +35,7 @@ export default async function ProductionPage() {
                 *,
                 assignments:batch_vessel_assignments(
                     released_at,
-                    batch:batches(name, batch_number)
+                    batch:batches(name, batch_number, actual_volume_l, planned_volume_l)
                 )
             `)
             .eq('is_active', true)

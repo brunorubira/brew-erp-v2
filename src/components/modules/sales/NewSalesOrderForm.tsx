@@ -106,11 +106,12 @@ export function NewSalesOrderForm({ customers: initialCustomers, products }: { c
                         </div>
 
                         {lines.map((line) => (
-                            <div key={line.tempId} className="grid grid-cols-12 gap-3 items-end bg-slate-50 p-3 rounded text-slate-800">
-                                <div className="col-span-5">
-                                    <label className="text-xs text-slate-500 mb-1 block">Produto</label>
+                            <div key={line.tempId} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 items-end bg-slate-50 p-4 sm:p-3 rounded text-slate-800 border border-slate-100 sm:border-0 relative">
+                                <div className="w-full sm:col-span-5">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 block sm:hidden">Produto</label>
+                                    <label className="text-xs text-slate-500 mb-1 hidden sm:block">Produto</label>
                                     <select
-                                        className="w-full text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
+                                        className="w-full text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none h-10 sm:h-auto"
                                         value={line.item_id}
                                         onChange={e => updateLine(line.tempId, 'item_id', e.target.value)}
                                         required
@@ -121,32 +122,36 @@ export function NewSalesOrderForm({ customers: initialCustomers, products }: { c
                                         ))}
                                     </select>
                                 </div>
-                                <div className="col-span-2">
-                                    <label className="text-xs text-slate-500 mb-1 block">Qtd</label>
-                                    <input
-                                        type="number"
-                                        className="w-full text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
-                                        value={line.qty}
-                                        onChange={e => updateLine(line.tempId, 'qty', e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="col-span-3">
-                                    <label className="text-xs text-slate-500 mb-1 block">Preço Un.</label>
-                                    <div className="relative">
-                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs text-slate-800">R$</span>
+                                <div className="grid grid-cols-2 gap-3 w-full sm:contents">
+                                    <div className="sm:col-span-2">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 block sm:hidden">Qtd</label>
+                                        <label className="text-xs text-slate-500 mb-1 hidden sm:block">Qtd</label>
                                         <input
                                             type="number"
-                                            step="0.01"
-                                            className="w-full pl-7 text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
-                                            value={line.unit_price}
-                                            onChange={e => updateLine(line.tempId, 'unit_price', e.target.value)}
+                                            className="w-full text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none h-10 sm:h-auto"
+                                            value={line.qty}
+                                            onChange={e => updateLine(line.tempId, 'qty', e.target.value)}
                                             required
                                         />
                                     </div>
+                                    <div className="sm:col-span-3">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 block sm:hidden">Preço Un.</label>
+                                        <label className="text-xs text-slate-500 mb-1 hidden sm:block">Preço Un.</label>
+                                        <div className="relative">
+                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="w-full pl-7 text-sm border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none h-10 sm:h-auto"
+                                                value={line.unit_price}
+                                                onChange={e => updateLine(line.tempId, 'unit_price', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="col-span-2 flex justify-end">
-                                    <button type="button" onClick={() => removeLine(line.tempId)} className="text-red-500 hover:text-red-700 p-2">
+                                <div className="absolute top-2 right-2 sm:relative sm:top-0 sm:right-0 sm:col-span-2 flex justify-end">
+                                    <button type="button" onClick={() => removeLine(line.tempId)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </div>

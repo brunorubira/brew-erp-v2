@@ -147,14 +147,28 @@ export function TankList({ tanks }: { tanks: Vessel[] }) {
                                             {(() => {
                                                 const activeAssignment = (tank as any).assignments?.find((a: any) => !a.released_at);
                                                 if (activeAssignment) {
+                                                    const batchVolume = activeAssignment.batch.actual_volume_l ?? activeAssignment.batch.planned_volume_l ?? 0;
+                                                    const usagePct = Math.min(100, Math.round((batchVolume / (Number(tank.capacity_l) || 1)) * 100));
+
                                                     return (
                                                         <div className="bg-blue-50 p-2 rounded border border-blue-100 mt-2">
-                                                            <div className="text-[9px] font-black text-blue-400 tracking-widest uppercase mb-1">PRODUÇÃO ATIVA</div>
+                                                            <div className="flex justify-between items-center mb-1">
+                                                                <div className="text-[9px] font-black text-blue-400 tracking-widest uppercase">PRODUÇÃO ATIVA</div>
+                                                                <div className="text-[10px] font-black text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+                                                                    {batchVolume}L / {usagePct}%
+                                                                </div>
+                                                            </div>
                                                             <div className="text-xs font-black text-blue-900 truncate">
                                                                 {activeAssignment.batch.name}
                                                             </div>
                                                             <div className="text-[10px] font-bold text-blue-700 mt-0.5">
                                                                 #{activeAssignment.batch.batch_number}
+                                                            </div>
+                                                            <div className="h-1 bg-blue-200 rounded-full overflow-hidden mt-2">
+                                                                <div
+                                                                    className="h-full bg-blue-600 transition-all duration-500"
+                                                                    style={{ width: `${usagePct}%` }}
+                                                                />
                                                             </div>
                                                         </div>
                                                     );

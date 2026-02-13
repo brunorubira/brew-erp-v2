@@ -32,6 +32,12 @@ export default async function BatchDetailPage({ params }: { params: { id: string
          consumed_at,
          item:items(name, unit),
          stock_lot:stock_lots(supplier_lot_code)
+      ),
+      packaging_runs:packaging_runs(
+         id,
+         date,
+         qty_cans_produced,
+         product:items(name, volume_ml)
       )
     `)
         .eq('id', id)
@@ -96,6 +102,12 @@ export default async function BatchDetailPage({ params }: { params: { id: string
                         <span>Etapa: <span className="text-slate-700">{batch.stage}</span></span>
                         <span className="text-slate-300">|</span>
                         <span>Tanque: <span className="text-slate-700">{currentVessel}</span></span>
+                        {batch.actual_volume_l !== null && (
+                            <>
+                                <span className="text-slate-300">|</span>
+                                <span>Volume Restante: <span className="text-blue-600 font-black">{batch.actual_volume_l}L</span></span>
+                            </>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -158,6 +170,43 @@ export default async function BatchDetailPage({ params }: { params: { id: string
                             <ConsumptionForm batchId={batch.id} lots={formattedLots} />
                         </div>
                     </div>
+
+                    {batch.packaging_runs && batch.packaging_runs.length > 0 && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border-2 border-slate-100">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-green-500" />
+                                    Histórico de Envase
+                                </h3>
+                            </div>
+
+                            <div className="overflow-hidden rounded-lg border border-slate-100">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3">Produto</th>
+                                            <th className="px-4 py-3 text-right">Qtd</th>
+                                            <th className="px-4 py-3 text-right">Volume</th>
+                                            <th className="px-4 py-3 text-right">Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {batch.packaging_runs.map((run: any) => {
+                                            const volL = (run.qty_cans_produced * (run.product?.volume_ml || 0)) / 1000;
+                                            return (
+                                                <tr key={run.id} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="px-4 py-3 font-bold text-slate-700">{run.product?.name}</td>
+                                                    <td className="px-4 py-3 text-right font-black text-slate-800">{run.qty_cans_produced} un.</td>
+                                                    <td className="px-4 py-3 text-right font-medium text-slate-500">{volL.toFixed(1)}L</td>
+                                                    <td className="px-4 py-3 text-right text-slate-400 text-xs">{format(new Date(run.date), 'dd/MM/yyyy')}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
 
                     {batch.notes && (
                         <div className="bg-amber-50 p-6 rounded-xl border-2 border-amber-100">

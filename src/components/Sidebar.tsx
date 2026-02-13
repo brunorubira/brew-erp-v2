@@ -12,6 +12,7 @@ import {
     Users,
     Settings,
     LogOut,
+    X,
 } from 'lucide-react';
 
 const navigation = [
@@ -24,14 +25,21 @@ const navigation = [
     { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ className, onClose }: { className?: string; onClose?: () => void }) {
     const pathname = usePathname();
 
     return (
-        <div className="flex h-full w-64 flex-col bg-slate-900 text-white">
-            <div className="flex h-16 items-center px-6 font-bold text-xl">
-                <Beer className="mr-2 h-6 w-6 text-amber-500" />
-                BrewERP
+        <div className={cn("flex h-full w-64 flex-col bg-slate-900 text-white", className)}>
+            <div className="flex h-16 items-center px-6 font-bold text-xl justify-between">
+                <div className="flex items-center">
+                    <Beer className="mr-2 h-6 w-6 text-amber-500" />
+                    BrewERP
+                </div>
+                {onClose && (
+                    <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
+                        <X className="h-6 w-6" />
+                    </button>
+                )}
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4">
                 {navigation.map((item) => {
@@ -40,6 +48,7 @@ export function Sidebar() {
                         <Link
                             key={item.name}
                             href={item.href}
+                            onClick={onClose}
                             className={cn(
                                 'group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
                                 isActive
@@ -65,6 +74,7 @@ export function Sidebar() {
                     onClick={() => {
                         // Sign out logic here
                         alert('Logout clicked (logic pending)');
+                        if (onClose) onClose();
                     }}
                 >
                     <LogOut className="mr-3 h-5 w-5 text-slate-500 group-hover:text-red-500" />
